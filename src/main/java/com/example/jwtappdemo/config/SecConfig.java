@@ -1,6 +1,7 @@
 package com.example.jwtappdemo.config;
 
 import com.example.jwtappdemo.filter.JwtTokenFilter;
+import com.example.jwtappdemo.service.LogoutService;
 import com.example.jwtappdemo.service.MyUserDetailsService;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -26,6 +28,8 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 public class SecConfig {
     @Autowired
     private MyUserDetailsService userDetailsService;
+    @Autowired
+    private LogoutService logoutService;
     private final String[] overlook = {
             "/api/v1/sign-in",
             "/api/v1/refresh",
@@ -48,7 +52,13 @@ public class SecConfig {
                 authenticationProvider()
         ).addFilterBefore(
                 jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class
-        );
+        ).logout(logout->{
+            logout.logoutUrl("/api/v1/logout")
+                    .addLogoutHandler(logoutService)
+                    .logoutSuccessHandler(
+                            ((request, response, authentication)->SecurityContextHolder.clearContext())
+                    );
+        });
         return http.build();
     }
     @Bean
