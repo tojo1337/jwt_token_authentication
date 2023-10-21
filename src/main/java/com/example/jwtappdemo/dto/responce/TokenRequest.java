@@ -8,5 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TokenRequest {
-    private String expiredToken;
+    private String token;
 }

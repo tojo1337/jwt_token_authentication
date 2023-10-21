@@ -28,6 +28,7 @@ public class SecConfig {
     private MyUserDetailsService userDetailsService;
     private final String[] overlook = {
             "/api/v1/sign-in",
+            "/api/v1/refresh",
             "/api/v1/token",
             "/api/v1/open"
     };
@@ -43,7 +44,11 @@ public class SecConfig {
             req.anyRequest().authenticated();
         }).sessionManagement(session->{
             session.sessionCreationPolicy(STATELESS);
-        }).authenticationProvider(authenticationProvider()).addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        }).authenticationProvider(
+                authenticationProvider()
+        ).addFilterBefore(
+                jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class
+        );
         return http.build();
     }
     @Bean

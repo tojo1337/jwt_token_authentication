@@ -4,6 +4,7 @@ import com.example.jwtappdemo.dto.jwt.JwtToken;
 import com.example.jwtappdemo.dto.responce.AuthRequest;
 import com.example.jwtappdemo.dto.responce.AuthResponce;
 import com.example.jwtappdemo.dto.responce.TokenRequest;
+import com.example.jwtappdemo.dto.user.MyUserDetails;
 import com.example.jwtappdemo.service.AuthService;
 import com.example.jwtappdemo.service.JwtService;
 import com.example.jwtappdemo.service.MyUserDetailsService;
@@ -60,7 +61,17 @@ public class AuthApi {
     }
     @PostMapping("/refresh")
     public AuthResponce refreshToken(@RequestBody TokenRequest tokenRequest){
-        log.log(Level.WARNING,"This method has not been implemented yet");
-        return AuthResponce.builder().data(tokenRequest.getExpiredToken()).build();
+        String expiredToken = tokenRequest.getToken();
+        String username = jwtService.extractUsername(expiredToken);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if(jwtService.isValidToken(expiredToken,userDetails)){
+            String newToken = jwtService.generateToken(userDetails);
+            authService.revokeAllUserToken(userDetails);
+            authService.saveUserToken(userDetails,newToken);
+            AuthResponce authResponce = AuthResponce.builder().data(newToken).build();
+            return authResponce;
+        }else {
+            return AuthResponce.builder().data("The token is not valid").build();
+        }
     }
 }
